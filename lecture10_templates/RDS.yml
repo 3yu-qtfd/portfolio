@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: RDS Create
+
+Parameters: 
+#-------------------------------------------------------------------
+# Base Name
+#-------------------------------------------------------------------
+  Namebase:
+    Description: base name for lecture10
+    Type: String
+    Default: "lecture10"
+
+Resources:
+#-------------------------------------------------------------------
+# RDS Instance
+#-------------------------------------------------------------------
+#RDS Instance
+  RDS:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      DBInstanceClass: db.t3.micro
+      AutoMinorVersionUpgrade: false
+      AvailabilityZone: ap-northeast-1a
+      DBInstanceIdentifier: !Sub "${Namebase}-rds"
+      DBName: !Sub "${Namebase}db"
+      DBSubnetGroupName: !Ref DBSubnetGroup
+      Engine: mysql
+      EngineVersion: 8.0.32
+      LicenseModel: general-public-license
+      MasterUsername: admin
+      MasterUserPassword: password1!  #後でマスクする
+      MultiAZ: false
+      Port: 3306
+      PubliclyAccessible: false
+      StorageEncrypted: true
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !ImportValue SecGroupRDS
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-rds"
+
+#-------------------------------------------------------------------
+# DB Subnet Group
+#-------------------------------------------------------------------
+#DB Subnet Group
+  DBSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: Private Subnet Group for RDS
+      DBSubnetGroupName: !Sub "${Namebase}-subnet-rds"
+      SubnetIds: 
+        - !ImportValue PrivateSubnet1a
+        - !ImportValue PrivateSubnet1c 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${Namebase}-subnet-rds"

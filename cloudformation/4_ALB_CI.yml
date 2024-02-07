@@ -1,0 +1,66 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: ALB Create via CircleCI
+
+Parameters: 
+#-------------------------------------------------------------------
+# Base Name
+#-------------------------------------------------------------------
+  Namebase:
+    Description: base name for lecture13
+    Type: String
+    Default: "lecture13"
+
+Resources: 
+#-------------------------------------------------------------------
+# ALB
+#-------------------------------------------------------------------
+#ALB
+  ALBForCI:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties: 
+      Name: !Sub "${Namebase}-alb"
+      Type: application
+      Scheme: internet-facing
+      SecurityGroups: 
+        - !ImportValue SecGroupALBForCI
+      Subnets:
+        - !ImportValue PublicSubnet1aForCI
+        - !ImportValue PublicSubnet1cForCI
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-alb"
+      
+#ALB Listener
+  ALBListenerForCI:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      LoadBalancerArn: !Ref ALBForCI
+      DefaultActions: 
+        - Type: forward
+          TargetGroupArn: !Ref ALBTargetGroupForCI
+      Port: 80
+      Protocol: HTTP
+
+#ALB Target Group
+  ALBTargetGroupForCI:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    Properties: 
+      Name: !Sub "${Namebase}-alb-tgp"
+      VpcId: !ImportValue VPCForCI
+      TargetType: instance
+      Targets: 
+        - Id: !ImportValue EC2ForCI
+      Port: 80
+      Protocol: HTTP
+      ProtocolVersion: HTTP1
+      HealthCheckEnabled: yes
+      HealthCheckIntervalSeconds: 30
+      HealthCheckPath: /404.html
+      HealthCheckPort: 80
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 5
+      HealthyThresholdCount: 5
+      UnhealthyThresholdCount: 2
+      Tags: 
+        - Key: Name
+          Value: !Sub "${Namebase}-alb-tgp"

@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: RDS Create via CircleCI
+
+Parameters: 
+#-------------------------------------------------------------------
+# Base Name
+#-------------------------------------------------------------------
+  Namebase:
+    Description: base name for lecture13
+    Type: String
+    Default: "lecture13"
+
+Resources:
+#-------------------------------------------------------------------
+# RDS Instance
+#-------------------------------------------------------------------
+#RDS Instance
+  RDSSecretForCI:
+    Type: "AWS::SecretsManager::Secret"
+    Properties:
+      Description: "RDS password for my RDS instance"
+      GenerateSecretString:
+        SecretStringTemplate: '{"username": "admin"}'
+        GenerateStringKey: "password"
+        PasswordLength: 16
+        ExcludeCharacters: '"@/\'
+
+  RDSForCI:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      AllocatedStorage: 20
+      DBInstanceClass: db.t3.micro
+      AutoMinorVersionUpgrade: false
+      AvailabilityZone:  !Select
+        - 1
+        - Fn::GetAZs: !Ref "AWS::Region"
+      DBInstanceIdentifier: !Sub "${Namebase}-rds"
+      DBName: !Sub "${Namebase}db"
+      DBSubnetGroupName: !Ref DBSubnetGroupForCI
+      Engine: mysql
+      EngineVersion: 8.0.32
+      LicenseModel: general-public-license
+      MasterUsername: admin
+      MasterUserPassword: !Sub '{{resolve:secretsmanager:${RDSSecretForCI}:SecretString:password}}'
+      MultiAZ: false
+      Port: 3306
+      PubliclyAccessible: false
+      StorageEncrypted: true
+      StorageType: gp2
+      VPCSecurityGroups:
+        - !ImportValue SecGroupRDSForCI
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-rds"
+
+#-------------------------------------------------------------------
+# DB Subnet Group
+#-------------------------------------------------------------------
+#DB Subnet Group
+  DBSubnetGroupForCI:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties: 
+      DBSubnetGroupDescription: Private Subnet Group for RDS
+      DBSubnetGroupName: !Sub "${Namebase}-subnet-rds"
+      SubnetIds: 
+        - !ImportValue PrivateSubnet1aForCI
+        - !ImportValue PrivateSubnet1cForCI
+      Tags: 
+        - Key: Name
+          Value: !Sub "${Namebase}-subnet-rds"

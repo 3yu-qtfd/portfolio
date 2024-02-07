@@ -1,0 +1,189 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: VPC Create via CircleCI
+
+Parameters: 
+#-------------------------------------------------------------------
+# Base Name
+#-------------------------------------------------------------------
+  Namebase:
+    Description: base name for lecture13
+    Type: String
+    Default: "lecture13"
+
+Resources: 
+#-------------------------------------------------------------------
+# VPC, Internet Gateway
+#-------------------------------------------------------------------
+#VPC
+  VPCForCI:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: 10.0.0.0/21
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-vpc"
+
+#Internet Gateway
+  InternetGatewayForCI: 
+    Type: AWS::EC2::InternetGateway
+    Properties: 
+      Tags: 
+        - Key: Name
+          Value: !Sub "${Namebase}-igw"
+
+  InternetGatewayAttachmentForCI: 
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties: 
+      InternetGatewayId: !Ref InternetGatewayForCI
+      VpcId: !Ref VPCForCI
+
+#-------------------------------------------------------------------
+# Subnet
+#-------------------------------------------------------------------
+#Public Subnet A
+  PublicSubnet1aForCI:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone: !Select
+        - 0
+        - Fn::GetAZs: !Ref "AWS::Region"
+      VpcId: !Ref VPCForCI
+      CidrBlock: 10.0.1.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-subnet-public-1a"
+
+#Public Subnet C
+  PublicSubnet1cForCI:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:  !Select
+        - 1
+        - Fn::GetAZs: !Ref "AWS::Region"
+      VpcId: !Ref VPCForCI
+      CidrBlock: 10.0.2.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-subnet-public-1c"
+
+#Private Subnet A
+  PrivateSubnet1aForCI:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:  !Select
+        - 0
+        - Fn::GetAZs: !Ref "AWS::Region"
+      VpcId: !Ref VPCForCI
+      CidrBlock: 10.0.3.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-subnet-private-1a"
+
+#Private Subnet C
+  PrivateSubnet1cForCI:
+    Type: AWS::EC2::Subnet
+    Properties:
+      AvailabilityZone:  !Select
+        - 1
+        - Fn::GetAZs: !Ref "AWS::Region"
+      VpcId: !Ref VPCForCI
+      CidrBlock: 10.0.4.0/24
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-subnet-private-1c"
+
+#-------------------------------------------------------------------
+# Route Table, Rouing
+#-------------------------------------------------------------------
+#Public Route Table
+  PublicRouteTableForCI:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCForCI
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-routetable-public"
+
+#Public Routing
+  PublicRouteForCI:
+    Type: AWS::EC2::Route
+    Properties:
+      RouteTableId: !Ref PublicRouteTableForCI
+      DestinationCidrBlock: 0.0.0.0/0  #localhost向けルーティングは不要
+      GatewayId: !Ref InternetGatewayForCI
+
+#Private Route Table
+  PrivateRouteTableForCI:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPCForCI
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-routetable-private"
+
+#-------------------------------------------------------------------
+# Route Association
+#-------------------------------------------------------------------
+#Public Route Association A
+  PublicRouteAssoc1aForCI:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1aForCI
+      RouteTableId: !Ref PublicRouteTableForCI
+
+#Public Route Association C
+  PublicRouteAssoc1cForCI:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PublicSubnet1cForCI
+      RouteTableId: !Ref PublicRouteTableForCI
+
+#Private Route Association A
+  PrivateRouteAssoc1aForCI:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1aForCI
+      RouteTableId: !Ref PrivateRouteTableForCI
+
+#Private Route Association C
+  PrivateRouteAssoc1cForCI:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet1cForCI
+      RouteTableId: !Ref PrivateRouteTableForCI
+
+Outputs:
+#-------------------------------------------------------------------
+# Outputs
+#-------------------------------------------------------------------
+#VPC
+  VPCForCI:
+    Value: !Ref VPCForCI
+    Export: 
+      Name: VPCForCI
+
+#Public Subnet 1a
+  PublicSubnet1aForCI:
+    Value: !Ref PublicSubnet1aForCI
+    Export: 
+      Name: PublicSubnet1aForCI
+
+#Public Subnet 1c
+  PublicSubnet1cForCI:
+    Value: !Ref PublicSubnet1cForCI
+    Export: 
+      Name: PublicSubnet1cForCI
+
+#Private Subnet 1a
+  PrivateSubnet1aForCI:
+    Value: !Ref PrivateSubnet1aForCI
+    Export: 
+      Name: PrivateSubnet1aForCI
+
+#Private Subnet 1c
+  PrivateSubnet1cForCI:
+    Value: !Ref PrivateSubnet1cForCI
+    Export: 
+      Name: PrivateSubnet1cForCI

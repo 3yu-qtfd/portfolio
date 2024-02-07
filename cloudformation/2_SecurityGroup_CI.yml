@@ -1,0 +1,156 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: SecurityGroup Create via CircleCI
+
+Parameters: 
+#-------------------------------------------------------------------
+# Base Name
+#-------------------------------------------------------------------
+  Namebase:
+    Description: base name for lecture13
+    Type: String
+    Default: "lecture13"
+
+Resources: 
+#-------------------------------------------------------------------
+# EC2 Security Group
+#-------------------------------------------------------------------
+#Security Group for EC2
+  SecGroupEC2ForCI:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${Namebase}-secgroup-ec2"
+      GroupDescription: Security Group for EC2
+      VpcId: !ImportValue VPCForCI
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-secgroup-ec2"
+
+#Ingress Rule 1
+  SecGroupEC2Ingress1ForCI:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2ForCI.GroupId
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 0.0.0.0/0
+
+#Ingress Rule 2
+  SecGroupEC2Ingress2ForCI:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2ForCI.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      SourceSecurityGroupId: !GetAtt SecGroupALBForCI.GroupId
+
+#Egress Rule 1
+  SecGroupEC2Egress1ForCI:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2ForCI.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+#Egress Rule 2
+  SecGroupEC2Egress2ForCI:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2ForCI.GroupId
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+
+#Egress Rule 3
+  SecGroupEC2Egress3ForCI:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2ForCI.GroupId
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !GetAtt SecGroupRDSForCI.GroupId
+
+#-------------------------------------------------------------------
+# ALB Security Group
+#-------------------------------------------------------------------
+#Security Group for ALB
+  SecGroupALBForCI:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${Namebase}-secgroup-alb"
+      GroupDescription: Security Group for ALB
+      VpcId: !ImportValue VPCForCI
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-secgroup-alb"
+          
+#Ingress Rule 1
+  SecGroupALBIngress1ForCI:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt SecGroupALBForCI.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+#Egress Rule 1
+  SecGroupALBEgress1ForCI:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt SecGroupALBForCI.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+#-------------------------------------------------------------------
+# RDS Security Group
+#-------------------------------------------------------------------
+#Security Group for RDS
+  SecGroupRDSForCI:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${Namebase}-secgroup-rds"
+      GroupDescription: Security Group for RDS
+      VpcId: !ImportValue VPCForCI
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-secgroup-rds"
+
+#Ingress Rule 1
+  SecGroupRDSIngress1ForCI:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt SecGroupRDSForCI.GroupId
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !GetAtt SecGroupEC2ForCI.GroupId
+
+Outputs:
+#-------------------------------------------------------------------
+# Outputs
+#-------------------------------------------------------------------
+#EC2 Security Group
+  SecGroupEC2ForCI:
+    Value: !Ref SecGroupEC2ForCI
+    Export: 
+      Name: SecGroupEC2ForCI
+
+#ALB Security Group
+  SecGroupALBForCI:
+    Value: !Ref SecGroupALBForCI
+    Export: 
+      Name: SecGroupALBForCI
+
+#ALB Security Group
+  SecGroupRDSForCI:
+    Value: !Ref SecGroupRDSForCI
+    Export: 
+      Name: SecGroupRDSForCI

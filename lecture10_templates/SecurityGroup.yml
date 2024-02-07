@@ -1,0 +1,156 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: SecurityGroup Create
+
+Parameters: 
+#-------------------------------------------------------------------
+# Base Name
+#-------------------------------------------------------------------
+  Namebase:
+    Description: base name for lecture10
+    Type: String
+    Default: "lecture10"
+
+Resources: 
+#-------------------------------------------------------------------
+# EC2 Security Group
+#-------------------------------------------------------------------
+#Security Group for EC2
+  SecGroupEC2:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${Namebase}-secgroup-ec2"
+      GroupDescription: Security Group for EC2
+      VpcId: !ImportValue VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-secgroup-ec2"
+
+#Ingress Rule 1
+  SecGroupEC2Ingress1:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2.GroupId
+      IpProtocol: tcp
+      FromPort: 22
+      ToPort: 22
+      CidrIp: 0.0.0.0/0
+
+#Ingress Rule 2
+  SecGroupEC2Ingress2:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      SourceSecurityGroupId: !GetAtt SecGroupALB.GroupId
+
+#Egress Rule 1
+  SecGroupEC2Egress1:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+#Egress Rule 2
+  SecGroupEC2Egress2:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2.GroupId
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+
+#Egress Rule 3
+  SecGroupEC2Egress3:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt SecGroupEC2.GroupId
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !GetAtt SecGroupRDS.GroupId
+
+#-------------------------------------------------------------------
+# ALB Security Group
+#-------------------------------------------------------------------
+#Security Group for ALB
+  SecGroupALB:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${Namebase}-secgroup-alb"
+      GroupDescription: Security Group for ALB
+      VpcId: !ImportValue VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-secgroup-alb"
+          
+#Ingress Rule 1
+  SecGroupALBIngress1:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt SecGroupALB.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+#Egress Rule 1
+  SecGroupALBEgress1:
+    Type: AWS::EC2::SecurityGroupEgress
+    Properties:
+      GroupId: !GetAtt SecGroupALB.GroupId
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+
+#-------------------------------------------------------------------
+# RDS Security Group
+#-------------------------------------------------------------------
+#Security Group for RDS
+  SecGroupRDS:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupName: !Sub "${Namebase}-secgroup-rds"
+      GroupDescription: Security Group for RDS
+      VpcId: !ImportValue VPC
+      Tags:
+        - Key: Name
+          Value: !Sub "${Namebase}-secgroup-rds"
+
+#Ingress Rule 1
+  SecGroupRDSIngress1:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !GetAtt SecGroupRDS.GroupId
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !GetAtt SecGroupEC2.GroupId
+
+Outputs:
+#-------------------------------------------------------------------
+# Outputs
+#-------------------------------------------------------------------
+#EC2 Security Group
+  SecGroupEC2:
+    Value: !Ref SecGroupEC2
+    Export: 
+      Name: SecGroupEC2
+
+#ALB Security Group
+  SecGroupALB:
+    Value: !Ref SecGroupALB
+    Export: 
+      Name: SecGroupALB
+
+#ALB Security Group
+  SecGroupRDS:
+    Value: !Ref SecGroupRDS
+    Export: 
+      Name: SecGroupRDS
