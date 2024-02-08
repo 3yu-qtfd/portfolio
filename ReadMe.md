@@ -1,18 +1,19 @@
-## 構成図
+# 構成図
 ![構成図](images/infra_diagram.png)
 
-### Ansible
-メンテナンスサーバーから手動実行すると、  
-パッケージ・ミドルウェアをセットアップする。
-
+# 何ができるか
+## Ansible
+メンテナンスサーバーから手動実行すると、パッケージ・ミドルウェアをセットアップする。
 ※CircleCIからの自動実行へ変更予定
 
-### CircleCI
+## CircleCI
+[コード](.circleci/config.yml)
 GitHubへpushするとCircleCIが起動し、以下を自動実行する。  
 ・CloudFormationのテンプレートチェック  
 ・CloudFormationのスタック作成
 
-### CloudFormation
+## CloudFormation
+[コード](cloudformation/)
 以下のAWSリソースを自動作成する。  
 ・VPC  
 ・ALB  
