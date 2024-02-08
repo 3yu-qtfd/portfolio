@@ -11,7 +11,7 @@ CloudFormationを利用し、これまでに構築したAWS環境をコード化
 1. 全リソースのテンプレートファイル作成  
 2. リソース単位に分割したテンプレートファイル作成  
 3. VPC→セキュリティグループ→EC2→ALB→RDS→S3 の順でスタックを作成   
-![CloudFormationスタック](images/lecture10/0_CloudFormation_stack.PNG)    
+![CloudFormationスタック](images/6_cloudformation/0_CloudFormation_stack.PNG)    
 
 - EC2→ALBの順で構築する必要があるが、後から構築すべきALBのセキュリティグループIDをEC2構築時点で呼び出す必要があったため 
 各リソースのセキュリティグループを1つのテンプレートファイルに分けて作成。  
@@ -21,7 +21,7 @@ cloudformation_templates_1
 
 ### 構築した環境
 - VPC
-![VPC](images/lecture10/1_VPC.PNG)  
+![VPC](images/6_cloudformation/1_VPC.PNG)  
 ![VPC_パブリックサブネット](images/6_cloudformation/2_VPC_PublicSubnet-1a.PNG)  
 ![VPC_パブリックサブネット](images/6_cloudformation/3_VPC_PrivateSubnet-1a.PNG)  
 ![VPC_プライベートサブネット](images/6_cloudformation/4_VPC_PublicSubnet-1c.PNG)  
