@@ -1,0 +1,32 @@
+---
+# tasks file for nginx
+- name: Download nginx repository
+  become_user: "{{ working_user }}"
+  ansible.builtin.command:
+    chdir: "{{ wget_dir }}"
+    cmd: wget http://nginx.org/packages/centos/7/noarch/RPMS/nginx-release-centos-7-0.el7.ngx.noarch.rpm
+    creates: "{{ wget_dir }}/nginx-release-centos-7-0.el7.ngx.noarch.rpm"
+
+- name: Install nginx repository
+  ansible.builtin.yum:
+    name: "{{ wget_dir }}/nginx-release-centos-7-0.el7.ngx.noarch.rpm"
+    state: present
+
+- name: Install nginx
+  ansible.builtin.yum:
+    name: nginx
+    state: present
+
+- name: Replace nginx.conf
+  ansible.builtin.template:
+    src: roles/nginx/templates/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+
+- name: Start nginx service
+  ansible.builtin.systemd:
+    enabled: true
+    name: nginx
+    state: started

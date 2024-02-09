@@ -1,0 +1,28 @@
+---
+# tasks file for mysql
+- name: Uninstall mariadb
+  ansible.builtin.yum:
+    name: mariadb-libs
+    state: absent
+
+- name: Import gpg-key for installing mysql-community repository
+  ansible.builtin.rpm_key:
+    key: https://repo.mysql.com/RPM-GPG-KEY-mysql-2023
+    state: present
+
+- name: Download mysql-community repository
+  become_user: "{{ working_user }}"
+  ansible.builtin.command:
+    chdir: "{{ wget_dir }}"
+    cmd: wget https://dev.mysql.com/get/mysql80-community-release-el7-7.noarch.rpm
+    creates: "{{ wget_dir }}/mysql80-community-release-el7-7.noarch.rpm"
+
+- name: Install mysql-community repository
+  ansible.builtin.yum:
+    name: "{{ wget_dir }}/mysql80-community-release-el7-7.noarch.rpm"
+    state: present
+
+- name: Install mysql-community-client
+  ansible.builtin.yum:
+    name: mysql-community-client
+    state: present

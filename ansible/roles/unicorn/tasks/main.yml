@@ -1,0 +1,9 @@
+---
+# tasks file for unicorn
+- name: Replace unicorn.rb
+  ansible.builtin.template:
+    src: roles/unicorn/templates/unicorn.rb.j2
+    dest: "{{ working_dir }}/config/unicorn.rb"
+    owner: "{{ working_user }}"
+    group: "{{ working_user }}"
+    mode: '0644'
