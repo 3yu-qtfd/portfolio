@@ -1,0 +1,28 @@
+---
+# tasks file for init
+- name: Change the timezone
+  community.general.timezone:
+    name: Asia/Tokyo
+
+- name: Make a directory for rpm files
+  become_user: "{{ working_user }}"
+  ansible.builtin.file:
+    path: "{{ wget_dir }}"
+    state: directory
+
+- name: Install git
+  ansible.builtin.yum:
+    name: git
+    state: present
+
+- name: Check if epel is already installed
+  become_user: "{{ working_user }}"
+  ansible.builtin.command:
+    cmd: "yum repolist all | grep epel"
+  register: epel_install_check
+  changed_when: false
+
+- name: Install & enable epel
+  ansible.builtin.command:
+    cmd: amazon-linux-extras install -y epel
+  when: epel_install_check is failed

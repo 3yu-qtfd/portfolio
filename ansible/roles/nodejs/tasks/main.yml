@@ -1,0 +1,34 @@
+---
+# tasks file for nodejs
+- name: Download nodejs repository
+  ansible.builtin.shell:
+    cmd: curl -sL https://rpm.nodesource.com/setup_17.x | bash -
+    creates: /etc/yum.repos.d/nodesource-el7.repo
+
+- name: Install nodejs as the latest version
+  ansible.builtin.yum:
+    name: nodejs
+    state: present
+
+- name: Install n for versioning up nodejs 
+  community.general.npm:
+    name: n
+    global: yes
+    state: present
+
+- name: Check if nodejs is already installed
+  ansible.builtin.shell:
+    cmd: bash -lc "node -v"
+  register: nodejs_install_check
+  changed_when: false
+
+- name: Install nodejs v17.9.1 with n
+  ansible.builtin.command:
+    cmd: n {{ nodejs_version }}
+    creates: /usr/local/bin/node
+
+- name: Install yarn
+  community.general.npm:
+    name: yarn
+    global: yes
+    state: present

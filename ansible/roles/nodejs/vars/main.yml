@@ -1,0 +1,3 @@
+---
+# vars file for nodejs_yarn
+nodejs_version: 17.9.1

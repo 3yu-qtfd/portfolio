@@ -1,0 +1,30 @@
+---
+# tasks file for setup
+- name: Make a directory for rails application
+  ansible.builtin.file:
+    path: /var/www
+    state: directory
+
+- name: Move application files to /var/www
+  ansible.builtin.copy:
+    force: true
+    remote_src: true
+    src: "{{ working_dir }}"
+    dest: /var/www/
+    owner: "{{ working_user }}"
+    group: "{{ working_user }}"
+    mode: '0775'
+
+- name: Setup the rails application by executing bin/setup
+  become_user: "{{ working_user }}"
+  ansible.builtin.shell:
+    chdir: "{{ prod_dir }}"
+    cmd: bash -lc "bin/setup"
+
+- name: Excute unicorn in background
+  become_user: "{{ working_user }}"
+  ansible.builtin.shell:
+    chdir: "{{ prod_dir }}"
+    cmd: bash -lc "bundle exec unicorn_rails -c config/unicorn.rb -D"
+
+

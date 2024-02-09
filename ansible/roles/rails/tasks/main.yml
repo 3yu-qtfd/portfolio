@@ -1,0 +1,51 @@
+---
+# tasks file for rails
+- name: Make a working directory for the rails application
+  become_user: "{{ working_user }}"
+  ansible.builtin.file:
+    path: "{{ working_dir }}"
+    state: directory
+
+- name: Clone the sample application from git
+  become_user: "{{ working_user }}"
+  ansible.builtin.git:
+    repo: https://github.com/yuta-ushijima/raisetech-live8-sample-app.git
+    dest: "{{ working_dir }}"
+
+- name: Install dependencies for the rails application
+  ansible.builtin.yum:
+    name:
+      - gcc-c++
+      - make
+      - curl
+      - libcurl-devel
+      - libicu-devel
+      - libxml2-devel
+      - libxslt-devel
+      - mysql-devel
+      - ImageMagick-devel
+    state: present
+
+- name: Install bundler with gem
+  become_user: "{{ working_user }}"
+  community.general.gem:
+    name: bundler
+    version: "{{ bundler_version }}"
+    executable: /home/ec2-user/.rbenv/shims/gem
+    user_install: false
+
+- name: Install rails with bundler
+  become_user: "{{ working_user }}"
+  community.general.bundler:
+    gemfile: "{{ working_dir }}/Gemfile"
+    executable: /home/ec2-user/.rbenv/shims/bundler
+    user_install: false
+    state: present
+
+- name: Replace database.yml
+  ansible.builtin.template:
+    src: roles/rails/templates/database.yml.j2
+    dest: "{{ working_dir }}/config/database.yml"
+    owner: "{{ working_user }}"
+    group: "{{ working_user }}"
+    mode: '0644'

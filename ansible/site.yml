@@ -1,0 +1,17 @@
+- hosts: all
+  roles:
+    - init
+    - mysql
+    - rbenv
+    - ruby
+    - rails
+    - nodejs
+    - nginx
+    - unicorn
+    - exec
+  vars:
+    working_user: ec2-user
+    working_dir: /home/ec2-user/raisetech-live8-sample-app
+    wget_dir: /home/ec2-user/raisetech-live8-sample-app/wget_files
+    prod_dir: /var/www/raisetech-live8-sample-app
+
